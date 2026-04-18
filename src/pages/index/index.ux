@@ -87,8 +87,14 @@ var sc = 0,
 	added = Array(4),
 	over = 0,
 	lm =Array(4),
-	that;
+	that,
+	POSITIONS = [];
 for (let i = 0; i < 4; i++) {lm[i]=new Array(4);board[i]=new Array(4);added[i]=new Array(4)}
+for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+        POSITIONS[row * 4 + col] = { x: col * 44 + 3, y: row * 44 + 3 };
+    }
+}
 export default {
 	public: {
 		blocks: [
@@ -146,7 +152,7 @@ export default {
 				
 			}
 		});
-		clear(added)
+		clearArray(added)
 	},
 	chcb() {
 		if (this.ch ==1) {
@@ -246,12 +252,12 @@ function rm0(sm) {
 		}}
 	return
 }
-function clear(m){//清空数组
+function clearArray(m){
 	for (let i = 0; i < 4; i++) {m[i].fill(0)}
 }
 function newgame() {
 	 (over = 0);
-	clear(board)
+	clearArray(board)
 	newblock();
 	newblock();
 	rm0(board);
@@ -270,16 +276,22 @@ function newblock() {//生成新方块
 		for (b = 0; 4 > b; b++)
 			if (0 == board[a][b]) return board[a][b] = 2
 }
-function mo(dir) {//移动函数2
+var moveFunctions = {
+	left: moveleft,
+	right: moveright,
+	up: moveup,
+	down: movedown
+};
+function mo(dir) {
 		let up = canMoveUp(board),
 			down = canMoveDown(board),
 			right = canMoveRight(board),
 			left = canMoveLeft(board);
 		if (up || left || down || right) {
-			if(eval(dir)){
+			let moveFn = moveFunctions[dir];
+			if(moveFn && moveFn()){
 				backup()
-				eval("move"+dir+"()");
-				clear(added)
+				clearArray(added)
 				if(that.ani){
 					setTimeout(() => {clearani()}, 120);
 					setTimeout(() => {newblock();
@@ -304,23 +316,13 @@ function backup(){//使能够撤回
 	that.ch=1
 	return
 }
-function fromTo(id1,id2){//动画函数，让id1的物品移动到id2
+function fromTo(id1,id2){
 	if(that.ani){
-		id1=id1.toString()
-		id2=id2.toString()
-		let x1,y1,x2,y2;
-		that.$element(id1).getBoundingClientRect({
-			success: (data)=>{
-				let { top, bottom, left, right, width, height } = data;
-				x1=left;y1=top
-		}})
-		that.$element(id2).getBoundingClientRect({
-			success: (data)=>{
-				let { top, bottom, left, right, width, height } = data;
-				x2=left;y2=top
-		}})
-		x2-=x1;y2-=y1
-		folme.fromTo({id:id1,fromState:{translateY:"0px",translateX:"0px"},toState:{translateY:y2+"px",translateX:x2+"px"},config:{duration:0.1}});
+		id1=parseInt(id1);
+		id2=parseInt(id2);
+		let dx=POSITIONS[id2].x-POSITIONS[id1].x;
+		let dy=POSITIONS[id2].y-POSITIONS[id1].y;
+		folme.fromTo({id:id1.toString(),fromState:{translateY:"0px",translateX:"0px"},toState:{translateY:dy+"px",translateX:dx+"px"},config:{duration:0.1}});
 	}
 	return 0
 }
@@ -365,13 +367,15 @@ function moveup() {
 			if (0 != board[b][a])
 				for (var c = 0; c < b; c++){
 					if(0 == board[c][a] && noBlockVertical(a, c, b, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);break}
-					else board[c][a] == board[b][a] && noBlockVertical(a, c, b, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
+					else board[c][a] == board[b][a] && noBlockVertical(a, c, b, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[b][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
+	return !0
 }
 function movedown() {
 	for (var a = 0; 4 > a; a++)
 		for (var b = 2; 0 <= b; b--)
 			if (0 != board[b][a])
-				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c - 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c-1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
+				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[b][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
+	return !0
 }
 function canMoveLeft(a) {
 	for (var b = 0; 4 > b; b++)
