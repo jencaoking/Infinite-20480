@@ -88,7 +88,8 @@ var sc = 0,
 	over = 0,
 	lm =Array(4),
 	that,
-	POSITIONS = [];
+	POSITIONS = [],
+	NEW_BLOCK_4_PROB = 50;
 for (let i = 0; i < 4; i++) {lm[i]=new Array(4);board[i]=new Array(4);added[i]=new Array(4)}
 for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 4; col++) {
@@ -165,6 +166,7 @@ export default {
 			}
 			rm0(board);
 			over=0;
+			clearArray(added)
 			this.save();
 			this.ch = 0;
 		}else{
@@ -175,9 +177,9 @@ export default {
 		}
 	},
 	new_game() {
-		backup()
 		newgame();
 		this.sco = 0;
+		this.ch = 0;
 		this.save();
 		clearani()
 	},
@@ -265,16 +267,14 @@ function newgame() {
 function rand_num(){//生成随机数，为了适配8的代码
 	return Math.floor(Math.random()*1000)
 }
-function newblock() {//生成新方块
-	for (var a = 3, b = rand_num() % 4, c = rand_num() % 4, d = 50 < rand_num() % 100 ? 4 : 2; 0 < a;) {
-		if (0 == board[b][c]) return board[b][c] = d
-		b = rand_num() % 4;
-		c = rand_num() % 4;
-		a--
-	}
-	for (a = 0; 4 > a; a++)
-		for (b = 0; 4 > b; b++)
-			if (0 == board[a][b]) return board[a][b] = 2
+function newblock() {
+	var emptyCells = [];
+	for (var a = 0; 4 > a; a++)
+		for (var b = 0; 4 > b; b++)
+			if (0 == board[a][b]) emptyCells.push({row: a, col: b});
+	if (emptyCells.length == 0) return;
+	var cell = emptyCells[rand_num() % emptyCells.length];
+	board[cell.row][cell.col] = NEW_BLOCK_4_PROB < rand_num() % 100 ? 4 : 2;
 }
 var moveFunctions = {
 	left: moveleft,
@@ -294,17 +294,33 @@ function mo(dir) {
 				clearArray(added)
 				if(that.ani){
 					setTimeout(() => {clearani()}, 120);
-					setTimeout(() => {newblock();
-					rm0(board);
+					setTimeout(() => {
+						newblock();
+						rm0(board);
+						checkGameOver();
 					}, 110);
 				}else{
 					newblock();
 					rm0(board);
+					checkGameOver();
 				}
 			}
-		} 
+		} else {
+			prompt.showToast({
+				message: "游戏结束！",
+				duration: 2000
+			});
+		}
 		rm0(board);return
 	}
+function checkGameOver() {
+	if (!canMoveUp(board) && !canMoveDown(board) && !canMoveLeft(board) && !canMoveRight(board)) {
+		prompt.showToast({
+			message: "游戏结束！",
+			duration: 2000
+		});
+	}
+}
 function backup(){//使能够撤回
 	for (let i = 0; i <4; i++) {
 		for (let j = 0; j < 4; j++) {
@@ -334,74 +350,87 @@ function clearani(){//清除动画
 	}
 }
 function moveleft() {
+	var moved = false;
 	for (var a = 0; 4 > a; a++)
 		for (var b = 1; 4 > b; b++)
 			if (0 != board[a][b])
 				for (var c = 0; c < b; c++) {
 					if(0 == board[a][c] && noBlockHorizontal(a, c, b, board)){
 						board[a][c] = board[a][b], board[a][b] = 0;
-						fromTo(a*4+b,a*4+c)
+						fromTo(a*4+b,a*4+c);
+						moved = true;
 						break
 					}
-					else board[a][c] == board[a][b] && noBlockHorizontal(a, c, b, board) && (0 != added[a][c] ? (board[a][c + 1] = board[a][b], board[a][b] = 0,fromTo(a*4+b,a*4+c+1)) : (board[a][c] += board[a][b],that.sco+=board[a][b]*2, board[a][b] = 0, added[a][c] = 1,fromTo(a*4+b,a*4+c)));}
-	
-	
-	return !0
+					else board[a][c] == board[a][b] && noBlockHorizontal(a, c, b, board) && (0 != added[a][c] ? (board[a][c + 1] = board[a][b], board[a][b] = 0,fromTo(a*4+b,a*4+c+1),moved = true) : (board[a][c] += board[a][b],that.sco+=board[a][c], board[a][b] = 0, added[a][c] = 1,fromTo(a*4+b,a*4+c),moved = true));}
+	return moved
 }
 
 function moveright() {
+	var moved = false;
 	for (var a = 0; 4 > a; a++)
 		for (var b = 2; 0 <= b; b--)
 			if (0 != board[a][b])
 				for (var c = 3; c > b; c--)
-					if(0 == board[a][c] && noBlockHorizontal(a, b, c, board)){board[a][c] = board[a][b], board[a][b] = 0;fromTo(a*4+b,a*4+c);break}
-					else board[a][c] == board[a][b] && noBlockHorizontal(a, b, c, board) && (0 != added[a][c] ? (board[a][c - 1] = board[a][b], board[a][b] = 0,fromTo(a*4+b,a*4+c-1)) : (board[a][c] += board[a][b],that.sco+=board[a][b]*2, board[a][b] = 0, added[a][c] = 1,fromTo(a*4+b,a*4+c)));
-	
-	
-	return !0
+					if(0 == board[a][c] && noBlockHorizontal(a, b, c, board)){board[a][c] = board[a][b], board[a][b] = 0;fromTo(a*4+b,a*4+c);moved = true;break}
+					else board[a][c] == board[a][b] && noBlockHorizontal(a, b, c, board) && (0 != added[a][c] ? (board[a][c - 1] = board[a][b], board[a][b] = 0,fromTo(a*4+b,a*4+c-1),moved = true) : (board[a][c] += board[a][b],that.sco+=board[a][c], board[a][b] = 0, added[a][c] = 1,fromTo(a*4+b,a*4+c),moved = true));
+	return moved
 }
 
 function moveup() {
+	var moved = false;
 	for (var a = 0; 4 > a; a++)
 		for (var b = 1; 4 > b; b++)
 			if (0 != board[b][a])
 				for (var c = 0; c < b; c++){
-					if(0 == board[c][a] && noBlockVertical(a, c, b, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);break}
-					else board[c][a] == board[b][a] && noBlockVertical(a, c, b, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[b][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
-	return !0
+					if(0 == board[c][a] && noBlockVertical(a, c, b, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);moved = true;break}
+					else board[c][a] == board[b][a] && noBlockVertical(a, c, b, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a),moved = true) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a),moved = true));}
+	return moved
 }
 function movedown() {
+	var moved = false;
 	for (var a = 0; 4 > a; a++)
 		for (var b = 2; 0 <= b; b--)
 			if (0 != board[b][a])
-				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a)) : (board[c][a] += board[b][a],that.sco+=board[b][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a)));}
-	return !0
+				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);moved = true;break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a),moved = true) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a),moved = true));}
+	return moved
 }
 function canMoveLeft(a) {
 	for (var b = 0; 4 > b; b++)
 		for (var c = 0; 4 > c; c++)
-			if (0 != a[b][c] && 0 != c && (0 == a[b][c - 1] || a[b][c - 1] == a[b][c])) return !0;
+			if (0 != a[b][c] && 0 != c)
+				for (var d = 0; d < c; d++)
+					if (0 == a[b][d] && noBlockHorizontal(b, d, c, a)) return !0;
+					else if (a[b][d] == a[b][c] && noBlockHorizontal(b, d, c, a)) return !0;
 	return !1
 }
 
 function canMoveRight(a) {
 	for (var b = 0; 4 > b; b++)
 		for (var c = 0; 4 > c; c++)
-			if (0 != a[b][c] && 3 != c && (0 == a[b][c + 1] || a[b][c + 1] == a[b][c])) return !0;
+			if (0 != a[b][c] && 3 != c)
+				for (var d = 3; d > c; d--)
+					if (0 == a[b][d] && noBlockHorizontal(b, c, d, a)) return !0;
+					else if (a[b][d] == a[b][c] && noBlockHorizontal(b, c, d, a)) return !0;
 	return !1
 }
 
 function canMoveUp(a) {
 	for (var b = 0; 4 > b; b++)
 		for (var c = 0; 4 > c; c++)
-			if (0 != a[b][c] && 0 != b && (0 == a[b - 1][c] || a[b - 1][c] == a[b][c])) return !0;
+			if (0 != a[b][c] && 0 != b)
+				for (var d = 0; d < b; d++)
+					if (0 == a[d][c] && noBlockVertical(c, d, b, a)) return !0;
+					else if (a[d][c] == a[b][c] && noBlockVertical(c, d, b, a)) return !0;
 	return !1
 }
 
 function canMoveDown(a) {
 	for (var b = 0; 4 > b; b++)
 		for (var c = 0; 4 > c; c++)
-			if (0 != a[b][c] && 3 != b && (0 == a[b + 1][c] || a[b + 1][c] == a[b][c])) return !0;
+			if (0 != a[b][c] && 3 != b)
+				for (var d = 3; d > b; d--)
+					if (0 == a[d][c] && noBlockVertical(c, b, d, a)) return !0;
+					else if (a[d][c] == a[b][c] && noBlockVertical(c, b, d, a)) return !0;
 	return !1
 }
 
