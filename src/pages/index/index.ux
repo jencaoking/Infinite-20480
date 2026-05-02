@@ -391,7 +391,7 @@ function movedown() {
 	for (var a = 0; 4 > a; a++)
 		for (var b = 2; 0 <= b; b--)
 			if (0 != board[b][a])
-				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);moved = true;break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c + 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c+1)*4+a),moved = true) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a),moved = true));}
+				for (var c = 3; c > b; c--){if(0 == board[c][a] && noBlockVertical(a, b, c, board)){board[c][a] = board[b][a], board[b][a] = 0;fromTo(b*4+a,c*4+a);moved = true;break}else board[c][a] == board[b][a] && noBlockVertical(a, b, c, board) && (0 != added[c][a] ? (board[c - 1][a] = board[b][a], board[b][a] = 0,fromTo(b*4+a,(c-1)*4+a),moved = true) : (board[c][a] += board[b][a],that.sco+=board[c][a], board[b][a] = 0, added[c][a] = 1,fromTo(b*4+a,c*4+a),moved = true));}
 	return moved
 }
 function canMoveLeft(a) {
