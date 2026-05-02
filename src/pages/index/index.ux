@@ -130,6 +130,8 @@ export default {
 			"rgba(0,0,0,0) #EFE5DA #F0E0C9 #fcb477 #ff9c61 #ff865d #ff6a38 #ebcf71 #ebcc5f #ebc94f #ebc53f #ebc22c #F2B6B6 #E8ED51 #FFE3FB #E8FF8C #FFDEC9 #F5A433 #E6109B #96C4E6 #E560CD #C4E8FF #FFC4E8 #E8FFC4 #FFE8C4 #C4FFE8 #E8C4FF #FFC4C4 #C4C4FF #FFFFC4 #C4FFFF".split(
 				" "
 			);
+		// 颜色数组映射规则: bgc[2^index] = color
+		// 扩展到31个颜色以支持2^30(1073741824)以内的方块数值显示，避免大数值方块颜色丢失
 		tempc.forEach((a, index) => {
 			this.bgc[2 ** index] = a;
 		});
