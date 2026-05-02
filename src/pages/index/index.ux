@@ -308,7 +308,6 @@ function mo(dir) {
 						}, 120);
 					} else {
 						newblock();
-						rm0(board);
 						checkGameOver();
 					}
 				}
