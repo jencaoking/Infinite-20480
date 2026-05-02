@@ -29,10 +29,10 @@
 		<div class="bg" if="{{menuFlag}}" style="background-color:rgba(0,0,0,0)">
 		<scroll class="bg" scroll-y="true" bounces="true" id="about" style="transform:translateX(192px)">
 			<img src="/common/about.png"/>
-			<img src="/common/true.png" if="{{dark}}" class="btn"onclick="changeMode"/>
-			<img src="/common/false.png" else class="btn"onclick="changeMode"/>
-			<img src="/common/true.png" if="{{ani}}" class="btn" style="top: 674px;" onclick="changeani"/>
-			<img src="/common/false.png" else class="btn"onclick="changeani"style="top: 674px;"/>
+			<img src="/common/true.png" if="{{dark}}" class="btn" @click="changeMode"/>
+			<img src="/common/false.png" else class="btn" @click="changeMode"/>
+			<img src="/common/true.png" if="{{ani}}" class="btn" style="top: 674px;" @click="changeani"/>
+			<img src="/common/false.png" else class="btn" style="top: 674px;" @click="changeani"/>
 		</scroll></div>
 		<!--back-->
 		<img style="position: absolute;left: 45px;top: 6px;" src="/common/back_b.png" @click="exit('e')" if="{{dark||menuFlag}}"/>
@@ -80,13 +80,11 @@ import prompt from "@system.prompt";
 import storage from "@system.storage";
 import folme from '@system.folme'
 
-var sc = 0,
-	ls,
+	var ls,
 	lhs,
 	board = Array(4),
 	added = Array(4),
-	over = 0,
-	lm =Array(4),
+	lm = Array(4),
 	that,
 	POSITIONS = [],
 	NEW_BLOCK_4_PROB = 50;
@@ -118,7 +116,7 @@ export default {
 		],
 		md: [],
 		hsc: 0,
-		sco: sc,
+		sco: 0,
 		bgc: [],
 		ise: [],
 		ch:0,
@@ -141,19 +139,19 @@ export default {
 			success: (data) => {
 				if (data) {
 					let o = JSON.parse(data);
-					board=o.map
-					rm0(o.map);
+					board = o.map;
+					rm0(board);
 					this.hsc = o.hs;
-					this.sco=o.sc
+					this.sco = o.sc;
 					this.ch = 0;
-					this.dark=o.dark
-					this.ani=o.ani
-				//console.log(data)
-				} else this.new_game();
-				
+					this.dark = o.dark;
+					this.ani = o.ani;
+				} else {
+					this.new_game();
+				}
+				clearArray(added);
 			}
 		});
-		clearArray(added)
 	},
 	chcb() {
 		if (this.ch ==1) {
@@ -165,7 +163,6 @@ export default {
 				}
 			}
 			rm0(board);
-			over=0;
 			clearArray(added)
 			this.save();
 			this.ch = 0;
@@ -181,7 +178,7 @@ export default {
 		this.sco = 0;
 		this.ch = 0;
 		this.save();
-		clearani()
+		clearani();
 	},
 	move(eve) {
 		if(this.menuFlag){
@@ -233,11 +230,12 @@ export default {
 		this.dark=!this.dark;
 		this.save()
 	},
-	changeani(){
-		this.ani=!this.ani;
-		this.save()
-	},onBackPress(){
-		this.exit('e')
+	changeani() {
+		this.ani = !this.ani;
+		this.save();
+	},
+	onBackPress() {
+		this.exit('e');
 		return true;
 	}
 };
@@ -258,7 +256,6 @@ function clearArray(m){
 	for (let i = 0; i < 4; i++) {m[i].fill(0)}
 }
 function newgame() {
-	 (over = 0);
 	clearArray(board)
 	newblock();
 	newblock();
@@ -289,20 +286,23 @@ function mo(dir) {
 			left = canMoveLeft(board);
 		if (up || left || down || right) {
 			let moveFn = moveFunctions[dir];
-			if(moveFn && moveFn()){
-				backup()
-				clearArray(added)
-				if(that.ani){
-					setTimeout(() => {clearani()}, 120);
-					setTimeout(() => {
+			if (moveFn) {
+				backup();
+				let moved = moveFn();
+				clearArray(added);
+				if (moved) {
+					if (that.ani) {
+						setTimeout(() => {clearani()}, 120);
+						setTimeout(() => {
+							newblock();
+							rm0(board);
+							checkGameOver();
+						}, 110);
+					} else {
 						newblock();
 						rm0(board);
 						checkGameOver();
-					}, 110);
-				}else{
-					newblock();
-					rm0(board);
-					checkGameOver();
+					}
 				}
 			}
 		} else {
@@ -311,7 +311,7 @@ function mo(dir) {
 				duration: 2000
 			});
 		}
-		rm0(board);return
+		return;
 	}
 function checkGameOver() {
 	if (!canMoveUp(board) && !canMoveDown(board) && !canMoveLeft(board) && !canMoveRight(board)) {
