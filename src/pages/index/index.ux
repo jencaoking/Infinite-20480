@@ -127,7 +127,7 @@ export default {
 	onInit() {
 		that = this;
 		let tempc =
-			"rgba(0,0,0,0) #EFE5DA #F0E0C9 #fcb477 #ff9c61 #ff865d #ff6a38 #ebcf71 #ebcc5f #ebc94f #ebc53f #ebc22c #F2B6B6 #E8ED51 #FFE3FB #E8FF8C #FFDEC9 #F5A433 #E6109B #96C4E6 #E560CD".split(
+			"rgba(0,0,0,0) #EFE5DA #F0E0C9 #fcb477 #ff9c61 #ff865d #ff6a38 #ebcf71 #ebcc5f #ebc94f #ebc53f #ebc22c #F2B6B6 #E8ED51 #FFE3FB #E8FF8C #FFDEC9 #F5A433 #E6109B #96C4E6 #E560CD #C4E8FF #FFC4E8 #E8FFC4 #FFE8C4 #C4FFE8 #E8C4FF #FFC4C4 #C4C4FF #FFFFC4 #C4FFFF".split(
 				" "
 			);
 		tempc.forEach((a, index) => {
