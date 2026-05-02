@@ -143,9 +143,9 @@ export default {
 					rm0(board);
 					this.hsc = o.hs;
 					this.sco = o.sc;
-					this.ch = 0;
 					this.dark = o.dark;
 					this.ani = o.ani;
+					backup();
 				} else {
 					this.new_game();
 				}
