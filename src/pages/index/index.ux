@@ -88,7 +88,8 @@ import folme from '@system.folme'
 	that,
 	POSITIONS = [],
 	NEW_BLOCK_4_PROB = 50,
-	animating = false;
+	animating = false,
+	gameOverFlag = false;
 for (let i = 0; i < 4; i++) {lm[i]=new Array(4);board[i]=new Array(4);added[i]=new Array(4)}
 for (let row = 0; row < 4; row++) {
     for (let col = 0; col < 4; col++) {
@@ -259,6 +260,7 @@ function clearArray(m){
 	for (let i = 0; i < 4; i++) {m[i].fill(0)}
 }
 function newgame() {
+	gameOverFlag = false;
 	clearArray(board)
 	newblock();
 	newblock();
@@ -312,16 +314,12 @@ function mo(dir) {
 					}
 				}
 			}
-		} else {
-			prompt.showToast({
-				message: "游戏结束！",
-				duration: 2000
-			});
 		}
 		return;
 	}
 function checkGameOver() {
-	if (!canMoveUp(board) && !canMoveDown(board) && !canMoveLeft(board) && !canMoveRight(board)) {
+	if (!canMoveUp(board) && !canMoveDown(board) && !canMoveLeft(board) && !canMoveRight(board) && !gameOverFlag) {
+		gameOverFlag = true;
 		prompt.showToast({
 			message: "游戏结束！",
 			duration: 2000
